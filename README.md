@@ -6,7 +6,6 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Development-yellow.svg)]()
 
-> 👀 *"Those who know, know."*
 
 GooEye is an asynchronous monitoring bot that tracks new listings on Goofish.com in real-time. It bypasses anti-bot protection, translates Chinese listings to Russian/English, and sends instant Telegram notifications with rich media cards.
 
