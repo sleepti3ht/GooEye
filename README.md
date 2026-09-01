@@ -17,7 +17,7 @@ Perfect for **resellers, collectors, and arbitrage traders** who need to act fas
 
 ### Core (Implemented)
 - **Real-time Monitoring** — Async polling with configurable intervals (~20s).
-- **Anti-Bot Protection** — Playwright with **persistent profile** (cookie/session retention) to mimic real user trust.
+- **Anti-Bot Protection** — Playwright with **persistent profile** (cookie/session retention) to mimic real user trust and bypass basic anti-fraud, without needing expensive rotating proxies.
 - **Bilingual Notifications** — Original Chinese + Russian translation side-by-side.
 - **Smart Filters** — Keywords inclusion/exclusion, price range, and "freshness window" (e.g., only items posted in the last 10 minutes).
 - **Rich Media Cards** — Photos, formatted text, and inline buttons in Telegram.
@@ -49,6 +49,8 @@ Perfect for **resellers, collectors, and arbitrage traders** who need to act fas
                                            ▼
                               [ Stealth Scraper Engine ]
                               (Playwright + Persistent Profile)
+                              (No complex proxies needed, just 
+                               natural browser behavior & saved sessions)
                                            │
                                            ▼
                                   [ Goofish (闲鱼) Platform ]
