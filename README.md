@@ -1,294 +1,150 @@
+
 # 👁️ GooEye
 
-**Real-time Goofish.com sniper bot with intelligent monitoring and bilingual notifications.**
+**Real-time Goofish.com (闲鱼) sniper bot with intelligent monitoring and bilingual notifications.**
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Development-yellow.svg)]()
+[![Status](https://img.shields.io/badge/Status-Active_Beta-yellow.svg)]()
 
-
-GooEye is an asynchronous monitoring bot that tracks new listings on Goofish.com in real-time. It bypasses anti-bot protection, translates Chinese listings to Russian/English, and sends instant Telegram notifications with rich media cards.
+GooEye is an asynchronous monitoring bot that tracks new listings on the Chinese P2P platform Goofish in real-time. It bypasses basic anti-bot protection using persistent browser profiles, translates Chinese listings to Russian, and sends instant Telegram notifications with rich media cards.
 
 Perfect for **resellers, collectors, and arbitrage traders** who need to act fast.
 
 ---
 
-##  Features
+## ✨ Features
 
-### Core
-- **Real-time Monitoring** — 15-30 second polling with intelligent rate limiting
-- **Anti-Bot Protection** — Playwright + rotating proxies + user-agent rotation + behavior emulation
-- **Bilingual Notifications** — Original Chinese + Russian/English translation side-by-side
-- **Smart Filters** — Keywords, price range, categories, exclude rules
-- **Rich Media Cards** — Photos, formatted text, inline buttons in Telegram
-- **Deduplication** — SQLite database prevents duplicate notifications
+### Core (Implemented)
+- **Real-time Monitoring** — Async polling with configurable intervals (~20s).
+- **Anti-Bot Protection** — Playwright with **persistent profile** (cookie/session retention) to mimic real user trust.
+- **Bilingual Notifications** — Original Chinese + Russian translation side-by-side.
+- **Smart Filters** — Keywords inclusion/exclusion, price range, and "freshness window" (e.g., only items posted in the last 10 minutes).
+- **Rich Media Cards** — Photos, formatted text, and inline buttons in Telegram.
+- **Two-Level Deduplication** — Timestamp (`publish_ts`) check + SQLite database with 7-day TTL to prevent duplicate alerts.
+- **Security** — Custom `logging.Filter` to automatically mask `BOT_TOKEN` in all console and file logs.
 
-### Advanced
-- **Cloudflare Bypass** — Headless browser with stealth mode
-- **CAPTCHA Handling** — Optional 2captcha integration
-- **Price Parsing** — Multi-currency support (¥, $, ₽, €) with auto-conversion
-- **Intelligent Polling** — Random delays (±20%) + exponential backoff on 429/403
-- **User Allowlist** — Only authorized Telegram users can access the bot
-- **Health Checks** — Auto-restart on failures, logging with metrics
+### Advanced (Roadmap)
+- Proxy rotation (residential IPs) for advanced Cloudflare bypass.
+- CAPTCHA solving integration (e.g., 2captcha).
+- Auto-renewal of sessions via QR-code directly in the Telegram interface.
+- Docker containerization for one-click deployment.
 
 ---
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐
-│  Goofish.com    │
-│  (Anti-Bot)     │
-└────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Playwright     │ ← Rotating Proxies + User-Agents
-│  Scraper        │ ← Behavior Emulation
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Data Extract   │ → Title, Price, Photos, Description
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Translation    │ → CN → RU/EN (Google Translate API)
-│  Layer          │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Filter Engine  │ → Keywords, Price, Categories
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Deduplication  │ → SQLite (item_id + TTL)
-────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Telegram Bot   │ → Media Group + Inline Buttons
-└─────────────────┘
+```text
+[ Telegram User ] <──(Polling)──> [ Telegram Bot Core (PTB v20+) ]
+                                           │
+                                           ▼
+                                  [ Monitor Orchestrator ]
+                                           │
+         ┌─────────────────────────────────┼─────────────────────────────────┐
+         ▼                               ▼                               ▼
+[Deduplication DB]               [Smart Filters]                [Translator]
+ (SQLite, TTL 7 days)          (Price, Keywords,              (ZH → RU)
+                                Freshness Window)
+                                           │
+                                           ▼
+                              [ Stealth Scraper Engine ]
+                              (Playwright + Persistent Profile)
+                                           │
+                                           ▼
+                                  [ Goofish (闲鱼) Platform ]
 ```
 
 ---
 
 ## 📋 Requirements
 
-- **Python 3.11+**
-- **Playwright** — for browser automation
+- **Python 3.12+**
+- **Playwright** — for headless browser automation
 - **Telegram Bot Token** — from [@BotFather](https://t.me/BotFather)
-- **Proxy Service** (optional but recommended) — Bright Data, Oxylabs, or free proxies
-- **Google Translate API** (optional) — or use free `deep-translator`
+- **Linux VPS** (Ubuntu 24.04 recommended) for 24/7 `systemd` deployment
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Install Dependencies
+## 🚀 Quick Start (Local / Dev)
 
 ```bash
+# 1. Clone and setup environment
 git clone https://github.com/sleepti3ht/gooeye.git
 cd gooeye
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# 2. Install dependencies and browser
 pip install -r requirements.txt
-playwright install
-```
+python -m playwright install chromium --with-deps
 
-### 2. Configure
+# 3. Configure
+cp .env.example .env
+# Edit .env with your BOT_TOKEN and ALLOWED_USER_IDS
 
-Create `.env` file:
-
-```bash
-# Telegram
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-ALLOWED_USERS=123456789,987654321  # Telegram user IDs
-
-# Goofish
-GOOFISH_CATEGORY_URL=https://goofish.com/category/your-category
-POLL_INTERVAL=20  # seconds
-
-# Translation
-TRANSLATE_TO=ru  # ru, en, or both
-
-# Filters
-MIN_PRICE=0
-MAX_PRICE=100000
-KEYWORDS_INCLUDE=Stone Island,CP Company
-KEYWORDS_EXCLUDE=replica,fake
-
-# Proxy (optional)
-PROXY_LIST=proxy1:port,proxy2:port
-USE_ROTATING_PROXIES=true
-
-# Database
-DATABASE_URL=sqlite:///gooeye.db
-```
-
-### 3. Run
-
-```bash
+# 4. Run
 python main.py
 ```
 
+*(For production 24/7 deployment, the project includes a ready-to-use `systemd` service configuration).*
+
 ---
 
-##  Project Structure
+## 📁 Project Structure
 
-```
+```text
 gooeye/
-├── main.py                  # Entry point
-├── config.py                # Configuration loader
-├── requirements.txt
-── README.md
-├── .env.example
+├── main.py                  # Entry point, asyncio lifecycle management
+├── monitor.py               # Main monitoring loop orchestrator
+├── config.py                # Settings validation and loading from .env
 │
-├── scraper/
-│   ├── __init__.py
-│   ├── browser.py           # Playwright setup
-│   ├── goofish_scraper.py   # Main scraper
-│   └── anti_bot.py          # Proxy + UA rotation
-│
-├── parser/
-│   ├── __init__.py
-│   ├── html_parser.py       # BeautifulSoup parser
-│   ── data_extractor.py    # Field extraction
-│
-├── translator/
-│   ├── __init__.py
-│   └── translator.py        # CN → RU/EN
-│
-├── filters/
-│   ├── __init__.py
-│   ├── keyword_filter.py
-│   ── price_filter.py
-│
-├── database/
-│   ├── __init__.py
-│   └── models.py            # SQLite models
-│
-├── telegram/
-│   ├── __init__.py
-│   ├── bot.py               # Telegram bot
-│   └── notifications.py     # Rich media sender
-│
-└── utils/
-    ├── __init__.py
-    ├── logger.py
-    └── rate_limiter.py
+├── bot/                     # Telegram handlers and rich media notifications
+├── scraper/                 # Playwright setup, stealth, and DOM parsing
+├── filters/                 # Logic for price and keyword filtering
+├── translator/              # Module for ZH → RU title translation
+├── database/                # SQLite deduplication and old record cleanup
+└── utils/                   # Custom logging with SecretFilter (token masking)
 ```
 
 ---
 
 ## 🎯 Example Notification
 
-```
+```text
 📦 [Stone Island] Nylon Metal Jacket
-━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🇨🇳 Original:
-STONE ISLAND 男士夹克和外套 ME-货号:S1
-54100091S0010V0093 尺码:M/L/XL/XXL
-折扣:5.7折 全新正品,欧洲代购...
+STONE ISLAND 男士夹克和外套 ME-货号:S1... 
+折扣:5.7折 全新正品
 
 🇷🇺 Translation:
-Stone Island Men's Jacket & Coats
-Item Code: S1-54100091S0010V0093
-Sizes: M/L/XL/XXL | Discount: 43% off
-Brand new, authentic, European purchase...
+Мужские куртки и пальто Stone Island 
+Скидка: 43%. Абсолютно новые, оригинальные.
 
-💰 Price: ¥3156 (~$435 / ~40,000₽)
-🔗 [Open Listing] [Translate Full] [Save to Favorites]
+💰 Price: ¥3156
+🔗 [Open Listing] [Translate Full]
 ```
 
 ---
 
-## ️ Development Roadmap
+## 📈 Development Roadmap
 
-### Phase 1: MVP 
-- [x] Basic Playwright scraper
-- [x] HTML parsing (title, price, photos)
-- [x] SQLite deduplication
-- [ ] Telegram notifications (text only)
-- [ ] Basic filters (keywords, price)
-
-### Phase 2: Core Features 
-- [ ] Translation layer (CN → RU/EN)
-- [ ] Rich media cards (photos + formatted text)
-- [ ] Inline buttons (translate, favorite, share)
-- [ ] User allowlist
-- [ ] Intelligent polling (random delays)
-
-### Phase 3: Anti-Bot Hardening 
-- [ ] Proxy rotation (Bright Data / Oxylabs)
-- [ ] User-agent rotation
-- [ ] Behavior emulation (scrolling, random clicks)
-- [ ] CAPTCHA solving (2captcha API)
-- [ ] Cloudflare bypass optimization
-
-### Phase 4: Advanced Features 
-- [ ] Multi-category monitoring
-- [ ] Price history tracking
-- [ ] Statistics dashboard (web UI)
-- [ ] Auto-buy integration (if API available)
-- [ ] Multi-user support (subscription tiers)
-
-### Phase 5: Scale & Monetization (Future)
-- [ ] Support for Taobao, 1688, Weidian
-- [ ] Web dashboard for filter management
-- [ ] Analytics: items found, conversion rate
-- [ ] Premium features (priority notifications, unlimited filters)
-- [ ] Mobile app (React Native / Flutter)
+- [x] **Phase 1: MVP** — Basic Playwright scraper, HTML parsing, SQLite deduplication.
+- [x] **Phase 2: Core Features** — Translation layer, rich media cards, user allowlist, freshness window filters.
+- [x] **Phase 3: Production Ready** — `systemd` deployment, auto-restart on failure, persistent cookie profile for anti-bot.
+- [ ] **Phase 4: Advanced Anti-Bot** — Residential proxy rotation, automated QR-code session renewal.
+- [ ] **Phase 5: Scale** — Docker support, multi-category monitoring, web dashboard for filter management.
 
 ---
 
 ## 🔐 Security & Ethics
 
-- **Private Use Only** — This tool is for personal monitoring, not commercial scraping
-- **Respect Rate Limits** — Built-in delays prevent server overload
-- **No Credentials in Repo** — All secrets in `.env` (never commit!)
-- **User Allowlist** — Only authorized users can access the bot
-- **Compliance** — Follow Goofish.com ToS and local laws
-
----
-
-## 📊 Performance Metrics
-
-Target benchmarks:
-- **Latency:** < 15 seconds from listing to notification
-- **Reliability:** 0 IP bans (thanks to proxy rotation)
-- **Accuracy:** > 90% relevant items (smart filters)
-- **Translation Speed:** < 2 seconds per item
-
----
-
-## 🤝 Contributing
-
-This is a private project for now. If you're interested in contributing:
-1. Open an issue with your proposal
-2. Wait for approval
-3. Fork and create a PR
+- **Private Use Focus** — Designed for personal monitoring with strict `ALLOWED_USER_IDS` control.
+- **Respectful Scraping** — Built-in delays and persistent profiles to avoid overloading the target server.
+- **Zero Secrets in Repo** — All sensitive data is strictly managed via `.env` and masked in logs.
 
 ---
 
 ## 📧 Contact
 
 - **Telegram:** @sleept1ght
-
----
-
-## ⚖️ License
-
-MIT License — use at your own risk.
-
----
-
-<div align="center">
-
-**Made with 👁️ by sleepti3ht**
-
-*Those who know, know.*
-
-</div>
-
