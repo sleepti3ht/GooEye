@@ -158,14 +158,13 @@ Live metrics from production deployment (bot currently paused after 2+ days of c
 | **Active session cookies** | 6 (stable) |
 
 ### Latency Breakdown (per scan cycle)
-```
-Page Load:      0.58s  ████████░░░░░░░░░░░░  2%
-mtop API Wait:  1.45s  ████████████████████░░  5%
-Humanizer:     ~27s   ████████████████████████  93%
-Parsing:        0.03s  ░░░░░░░░░░░░░░░░░░░░░░  <1%
-─────────────────────────────────────────────
-Total:         29.1s
-```
+| Component | Time | % of Total |
+|-----------|------|------------|
+| Page Load | 0.58s | 2% |
+| mtop API Wait | 1.45s | 5% |
+| Humanizer Delays | ~27s | 93% |
+| DOM Parsing | 0.03s | <1% |
+| **Total** | **29.1s** | 100% |
 
 ### Key Insights
 - **Zero anti-bot triggers:** 44,919 items scanned across ~1,500 cycles with **0 CAPTCHAs** and **0 rate limits**. Humanizer strategy (random delays, scroll simulation, task shuffling) successfully mimics real user behavior.
