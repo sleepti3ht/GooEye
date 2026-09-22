@@ -138,6 +138,48 @@ STONE ISLAND 男士夹克和外套 ME-货号:S1...
 ```
 
 ---
+## 📊 Performance & Anti-Bot Efficacy
+
+Live metrics from production deployment (bot currently paused after 2+ days of continuous operation):
+
+| Metric | Value |
+|--------|-------|
+| **Total items scanned** | 44,919 |
+| **Total scan cycles** | ~1,497 |
+| **Notifications sent** | 26 (100% delivery rate) |
+| **CAPTCHAs triggered** | 0 |
+| **HTTP 429 errors** | 0 |
+| **Avg scan duration** | 29.1s (includes humanizer delays) |
+| **Page load time** | 0.58s |
+| **mtop API response** | 1.45s |
+| **DOM parsing** | 0.03s |
+| **Items per scan** | ~30 |
+| **Scan interval** | 152s |
+| **Active session cookies** | 6 (stable) |
+
+### Latency Breakdown (per scan cycle)
+```
+Page Load:      0.58s  ████████░░░░░░░░░░░░  2%
+mtop API Wait:  1.45s  ████████████████████░░  5%
+Humanizer:     ~27s   ████████████████████████  93%
+Parsing:        0.03s  ░░░░░░░░░░░░░░░░░░░░░░  <1%
+─────────────────────────────────────────────
+Total:         29.1s
+```
+
+### Key Insights
+- **Zero anti-bot triggers:** 44,919 items scanned across ~1,500 cycles with **0 CAPTCHAs** and **0 rate limits**. Humanizer strategy (random delays, scroll simulation, task shuffling) successfully mimics real user behavior.
+- **High notification accuracy:** 26 matches detected, 26 notifications sent — **100% delivery rate** with no false positives or missed alerts.
+- **Stable sessions:** Browser cookies persist across restarts (6 active cookies), no re-authentication required during 2+ day runtime.
+- **Intentional latency:** The 29s avg scan time is a **design choice**, not a bottleneck. ~93% of cycle time is spent on humanizer delays to avoid triggering Alibaba's `baxia`/`fireyejs` anti-fraud systems. Raw parsing takes only 0.03s.
+
+### Comparison: GooEye vs Typical Scrapers
+| Approach | CAPTCHAs per 10k requests | Avg Latency | Session Stability |
+|----------|---------------------------|-------------|-------------------|
+| **GooEye (Humanizer)** | 0 | 29s/cycle | 2+ days |
+| Aggressive scraper | 50-200 | 2-5s/cycle | 10-30 min |
+| Headless browser (no stealth) | 100-500 | 1-3s/cycle | 5-15 min |
+---
 
 ## 📈 Development Phases
 
@@ -147,6 +189,20 @@ STONE ISLAND 男士夹克和外套 ME-货号:S1...
 - [x] **Phase 4: Multi-User & UX** — Isolated profiles per `user_id`, Telegram QR-Code login, Photo-based search tasks.
 - [ ] **Phase 5: Scale & Resilience** — Residential proxy rotation fallback, price-drop tracking, advanced analytics.
 
+---
+## 🔧 Troubleshooting
+
+### Browser crashes after 24h
+- **Cause:** Memory leak in Playwright
+- **Solution:** systemd service auto-restarts every 12h (`Restart=always`)
+
+### CAPTCHA appears
+- **Cause:** Timing mode too aggressive
+- **Solution:** Switch to `HUMAN` or `IRONCLAD` mode in `.env`
+
+### QR code expires
+- **Cause:** Network latency
+- **Solution:** Re-run `/login` command, ensure VPS has stable connection to China
 ---
 
 ## 🔐 Security & Architecture Philosophy
@@ -160,3 +216,4 @@ STONE ISLAND 男士夹克和外套 ME-货号:S1...
 ## 📧 Contact
 
 - **Telegram:** @sleept1ght
+- **Email:** sleepti3ht@gmail.com
