@@ -180,6 +180,19 @@ Live metrics from production deployment (bot currently paused after 2+ days of c
 | Headless browser (no stealth) | 100-500 | 1-3s/cycle | 5-15 min |
 ---
 
+## 📱 User Interface & Observability
+
+Built-in Telegram bot interface provides **real-time transparency** — no SSH or log parsing required:
+
+### Features:
+- **Live Statistics** — scan intervals, success rates, anti-bot counters (429/CAPTCHA)
+- **Session Health Monitoring** — cookie status, last scan timestamp, browser state
+- **Performance Breakdown** — page load, mtop API wait, parsing time per scan
+- **One-Click Controls** — pause/resume, QR login, task management via inline buttons
+
+### Example Stats View:
+![GooEye Statistics](screenshots/statistics.png)
+---
 ## 📈 Development Phases
 
 - [x] **Phase 1: MVP** — Basic Playwright scraper, HTML parsing, SQLite deduplication.
