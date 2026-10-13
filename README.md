@@ -1,10 +1,12 @@
-
 <div align="center">
+
+<img src="screenshots/GooEye_Logo.png" width="64" height="64" alt="GooEye Logo"/>
 
 # 👁️ GooEye
 
 [![Python](https://img.shields.io/badge/Python-3.12+-18181b?style=flat&logo=python)](https://python.org)
 [![Playwright](https://img.shields.io/badge/Playwright-Automation-18181b?style=flat&logo=playwright)](https://playwright.dev)
+[![Telegram](https://img.shields.io/badge/Telegram-Bot_API-18181b?style=flat&logo=telegram)](https://core.telegram.org/bots/api)
 [![License](https://img.shields.io/badge/License-MIT-18181b?style=flat)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Production_Ready-facc15?style=flat)]()
 
@@ -63,15 +65,77 @@ As a system handling persistent browser contexts and concurrent I/O, the followi
 
 ---
 
-## ✨ Core Features
+## 🧠 Core Engineering Snippets
 
-- **Multi-User Isolation:** Dedicated headless Chromium profile and isolated cookie jar (`state_<user_id>.json`) per user. Zero cross-contamination.
-- **Telegram QR-Code Login:** Refresh sessions instantly. The bot generates a QR code, you scan it with your phone, and cookies are saved automatically. No SSH or manual file transfers needed.
-- **Advanced Humanizer:** 4 configurable timing modes (Extreme to Ironclad), random task shuffling, simulated page scrolling, and adaptive backoff on errors.
-- **Dual Search Modes:** Monitor by **Keywords** or by **Photo** (upload an image, bot searches Goofish visually).
-- **Smart Filters:** Price ranges, keyword inclusion/exclusion (strictly in titles to avoid spam), and configurable "freshness windows".
-- **Rich Media Notifications:** High-quality photos, bilingual (ZH/RU) side-by-side translations, and inline action buttons.
-- **Security:** Custom logging filters automatically mask `BOT_TOKEN` and sensitive PII in console outputs.
+### Multi-Tenant Isolation & Concurrency
+```python
+class BrowserManager:
+    def __init__(self):
+        self._contexts: dict[int, BrowserContext] = {}
+        # Mitigation: asyncio.Lock prevents race conditions when multiple 
+        # Telegram users trigger task creation simultaneously.
+        self._lock = asyncio.Lock() 
+
+    async def get_context(self, user_id: int) -> BrowserContext:
+        # ... existing code ...
+        async with self._lock:
+            if user_id not in self._contexts:
+                # Strict isolation: prevents cross-contamination of cookies/sessions
+                storage_path = f"state_{user_id}.json"
+                context = await self._browser.new_context(storage_state=storage_path)
+                self._contexts[user_id] = context
+        return self._contexts[user_id]
+        
+    async def graceful_shutdown(self):
+        # Mitigation: Explicitly flush V8 heap memory to prevent 
+        # gradual Chromium memory leaks before systemd restarts the process.
+        for ctx in self._contexts.values():
+            await ctx.close()
+        # ... existing code ...
+```
+
+### Advanced Humanizer (Anti-Bot Evasion)
+```python
+async def humanize_session(page: Page, mode: TimingMode):
+    # Mitigation: Adaptive backoff prevents HTTP 429 (Too Many Requests) 
+    # and CAPTCHA triggers by mimicking organic user variance.
+    
+    # 1. Simulate non-linear reading behavior (scrolling)
+    for _ in range(random.randint(2, 5)):
+        await page.mouse.wheel(0, random.uniform(300, 800))
+        await asyncio.sleep(random.uniform(1.5, 3.2))
+        
+    # 2. Randomized mouse jitter to defeat canvas fingerprinting heuristics
+    # ... existing code ...
+    
+    # 3. Task shuffling to avoid predictable sequential polling patterns
+    # ... existing code ...
+```
+
+---
+
+## 📱 Visuals & Observability
+
+**📸 Notifications 1: (screenshots/notification_card_1.png)**
+**Rich Media Notifications:** High-quality photos and inline action buttons for instant decision-making.
+<br>
+**📸 Notifications 2: (screenshots/notification_card_1.png)**
+**Rich Media Notifications:** Bilingual side-by-side translations and inline action buttons for instant decision-making.
+<br>
+**📸 Real-time Telemetry 2: (screenshots/observability_dashboard.png)**
+**Real-time Telemetry:** Built-in Telegram interface provides live transparency into scan intervals, anti-bot counters (429/CAPTCHA), and infrastructure health.
+<br>
+
+---
+
+## ✨ Feature Matrix
+
+| Feature | Implementation Details |
+|---------|------------------------|
+| **Dual Search Modes** | Monitor by **Keywords** or by **Photo** (visual search via image upload). |
+| **Smart Filters** | Price ranges, strict keyword inclusion/exclusion (title-only to avoid spam). |
+| **Telegram QR-Login** | Headless QR-code generation and automatic cookie extraction. No SSH required. |
+| **Security** | Custom `SecretFilter` automatically masks `BOT_TOKEN` and PII in stdout/stderr. |
 
 ---
 
@@ -128,17 +192,13 @@ gooeye/
 
 ---
 
-## 📱 User Interface & Observability
+## 🔧 Troubleshooting
 
-Built-in Telegram bot interface provides **real-time transparency** — no SSH or log parsing required:
-
-- **Live Statistics:** Scan intervals, success rates, anti-bot counters (429/CAPTCHA).
-- **Session Health Monitoring:** Cookie status, last scan timestamp, browser state.
-- **Performance Breakdown:** Page load, mtop API wait, parsing time per scan.
-- **One-Click Controls:** Pause/resume, QR login, task management via inline buttons.
-
-*Example Stats View:*
-![GooEye Statistics](screenshots/statistics.png)
+| Symptom | Root Cause | Mitigation |
+|---------|------------|------------|
+| **Browser crashes after 24h** | V8/Chromium memory leak over time. | Rely on `systemd` auto-restart (`Restart=always`, max 12h uptime). |
+| **CAPTCHA appears** | Timing mode too aggressive for current IP reputation. | Switch to `HUMAN` or `IRONCLAD` mode in `.env`. |
+| **QR code expires** | Network latency between VPS and Alibaba auth servers. | Re-run `/login` command. Ensure VPS has stable routing to China. |
 
 ---
 
@@ -149,16 +209,6 @@ Built-in Telegram bot interface provides **real-time transparency** — no SSH o
 - [x] **Phase 3: Production Ready** — `systemd` deployment, persistent cookie profiles, advanced Humanizer (4 modes).
 - [x] **Phase 4: Multi-User & UX** — Isolated profiles per `user_id`, Telegram QR-Code login, Photo-based search tasks.
 - [ ] **Phase 5: Scale & Resilience** — Residential proxy rotation fallback, price-drop tracking, advanced analytics dashboard.
-
----
-
-## 🔧 Troubleshooting
-
-| Symptom | Root Cause | Mitigation |
-|---------|------------|------------|
-| **Browser crashes after 24h** | V8/Chromium memory leak over time. | Rely on `systemd` auto-restart (`Restart=always`, max 12h uptime). |
-| **CAPTCHA appears** | Timing mode too aggressive for current IP reputation. | Switch to `HUMAN` or `IRONCLAD` mode in `.env`. |
-| **QR code expires** | Network latency between VPS and Alibaba auth servers. | Re-run `/login` command. Ensure VPS has stable routing to China. |
 
 ---
 
