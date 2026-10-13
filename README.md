@@ -116,18 +116,33 @@ async def humanize_session(page: Page, mode: TimingMode):
 
 ## 📱 Visuals & Observability
 
-📸 Notifications 1: 
-![Notifications](screenshots/notification_card_1.png)
-Rich Media Notifications: High-quality photos and inline action buttons for instant decision-making.
-
-📸 Notifications 2: 
-![Notifications](screenshots/notification_card_1.png)
-Rich Media Notifications: Bilingual side-by-side translations and inline action buttons for instant decision-making.
-
-📸 Real-time Telemetry 2: 
-![Dashboard](screenshots/observability_dashboard.png)
-Real-time Telemetry: Built-in Telegram interface provides live transparency into scan intervals, anti-bot counters (429/CAPTCHA), and infrastructure health.
-
+<div align="center">
+  <table>
+    <tr>
+      <td width="50%" align="center">
+        <b>Rich Media Notifications</b><br><br>
+        <img src="screenshots/notification_card_1.png" alt="Notification Card 1" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <br><br>
+        <sub>High-quality photos and inline action buttons for instant arbitrage decisions.</sub>
+      </td>
+      <td width="50%" align="center">
+        <b>Bilingual Translation</b><br><br>
+        <!-- ИСПРАВЛЕНО: Заменено на _2.png. Убедитесь, что файл существует -->
+        <img src="screenshots/notification_card_2.png" alt="Notification Card 2" width="100%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <br><br>
+        <sub>Side-by-side ZH/RU translations to eliminate language barriers.</sub>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <br><b>Real-time Telemetry & Observability</b><br><br>
+        <img src="screenshots/observability_dashboard.png" alt="Dashboard" width="80%" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <br><br>
+        <sub>Live transparency into scan intervals, anti-bot counters (429/CAPTCHA), and infrastructure health without SSH access.</sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
