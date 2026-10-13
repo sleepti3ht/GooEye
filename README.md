@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="screenshots/GooEye_Logo.png" width="64" height="64" alt="GooEye Logo"/>
+<img src="assets/GooEye_Logo.png" width="64" height="64" alt="GooEye Logo"/>
 
 # 👁️ GooEye
 
