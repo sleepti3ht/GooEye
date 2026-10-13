@@ -116,15 +116,18 @@ async def humanize_session(page: Page, mode: TimingMode):
 
 ## 📱 Visuals & Observability
 
-**📸 Notifications 1: (screenshots/notification_card_1.png)**
-**Rich Media Notifications:** High-quality photos and inline action buttons for instant decision-making.
-<br>
-**📸 Notifications 2: (screenshots/notification_card_1.png)**
-**Rich Media Notifications:** Bilingual side-by-side translations and inline action buttons for instant decision-making.
-<br>
-**📸 Real-time Telemetry 2: (screenshots/observability_dashboard.png)**
-**Real-time Telemetry:** Built-in Telegram interface provides live transparency into scan intervals, anti-bot counters (429/CAPTCHA), and infrastructure health.
-<br>
+📸 Notifications 1: 
+![Notifications](screenshots/notification_card_1.png)
+Rich Media Notifications: High-quality photos and inline action buttons for instant decision-making.
+
+📸 Notifications 2: 
+![Notifications](screenshots/notification_card_1.png)
+Rich Media Notifications: Bilingual side-by-side translations and inline action buttons for instant decision-making.
+
+📸 Real-time Telemetry 2: 
+![Dashboard](screenshots/observability_dashboard.png)
+Real-time Telemetry: Built-in Telegram interface provides live transparency into scan intervals, anti-bot counters (429/CAPTCHA), and infrastructure health.
+
 
 ---
 
